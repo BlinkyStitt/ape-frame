@@ -4,13 +4,12 @@ name: Test
 
 jobs:
     linting:
-        runs-on: ubuntu-latest
-
+        runs-on: ubuntu-22.04
         steps:
-        - uses: actions/checkout@v2
+        - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
         - name: Setup Python
-          uses: actions/setup-python@v2
+          uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
           with:
               python-version: 3.8
 
@@ -29,13 +28,12 @@ jobs:
           run: isort --check-only .
 
     type-check:
-        runs-on: ubuntu-latest
-
+        runs-on: ubuntu-22.04
         steps:
-        - uses: actions/checkout@v2
+        - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
         - name: Setup Python
-          uses: actions/setup-python@v2
+          uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
           with:
               python-version: 3.8
 
@@ -48,7 +46,7 @@ jobs:
           run: mypy .
 
     functional:
-        runs-on: ${{ matrix.os }}
+        runs-on: ${{ matrix.os == 'ubuntu-latest' && 'ubuntu-22.04' || matrix.os == 'macos-latest' && (matrix.python-version == '3.8' || matrix.python-version == '3.9') && 'macos-15-intel' || matrix.os }}
 
         strategy:
             matrix:
@@ -56,10 +54,10 @@ jobs:
                 python-version: [3.8, 3.9, "3.10"]
 
         steps:
-        - uses: actions/checkout@v2
+        - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
         - name: Setup Python
-          uses: actions/setup-python@v2
+          uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
           with:
               python-version: ${{ matrix.python-version }}
 
@@ -91,3 +89,8 @@ jobs:
 #
 #        - name: Run Tests
 #          run: pytest -m "fuzzing" --no-cov -s
+
+# Superseded PR validation must not hold runner capacity.
+concurrency:
+  group: pr-ci-test.yaml-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
